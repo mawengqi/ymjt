@@ -1,14 +1,11 @@
 * { margin: 0; padding: 0; }
-body { background-color: #333333; }
 img { border: 0; vertical-align: top; }
 ul, li { list-style: none; }
 
 .shutter {
   overflow: hidden;
-  width: 1000px;
   height: 358px;
   position: relative;
-  margin: 50px auto;
   border-radius: 10px;
   
 }
