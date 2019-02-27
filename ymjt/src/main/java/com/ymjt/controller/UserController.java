@@ -1,5 +1,6 @@
 package com.ymjt.controller;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
 import com.ymjt.entity.User;
 import com.ymjt.service.UserService;
@@ -13,11 +14,16 @@ import org.springframework.stereotype.Controller;
 @Controller
 @Scope("prototype")
 public class UserController extends ActionSupport {
+
+    public String username;
+
     @Autowired
     private UserService userService;
 
     public String findUser() throws Exception {
+        ActionContext.getContext().getValueStack();
         User user = userService.findUser(1);
         return SUCCESS;
     }
+
 }

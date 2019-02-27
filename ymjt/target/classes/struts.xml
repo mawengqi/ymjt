@@ -6,7 +6,7 @@
 <struts>
     <package name="ymjt" extends="struts-default" namespace="/">
         <action name="student_*" class="userController" method="{1}">
-            <result name="{1}">/index.jsp</result>
+            <result name="success">/index.jsp</result>
         </action>
     </package>
 </struts>
