@@ -1,0 +1,46 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>jQuery</title>
+
+<link rel="stylesheet" href="css/shutter.css">
+
+</head>
+<body>
+
+<div class="shutter">
+<div class="shutter-img">
+  <a href="#" data-shutter-title="Iron Man"><img src="images/a1.png" alt="#"></a>
+  <a href="#" data-shutter-title="Super Man"><img src="images/a2.png" alt="#"></a>
+  <a href="#" data-shutter-title="The Hulk"><img src="images/a3.png" alt="#"></a>
+   <a href="#" data-shutter-title="The your"><img src="images/a4.png" alt="#"></a>
+</div>
+<ul class="shutter-btn">
+  <li class="prev"></li>
+  <li class="next"></li>
+</ul>
+<div class="shutter-desc">
+  <p>Iron Man</p>
+</div>
+</div>
+
+<script src="http://www.jq22.com/jquery/jquery-1.10.2.js"></script>
+<script src="js/velocity.js"></script>
+<script src="js/shutter.js"></script>
+<script>
+$(function () {
+  $('.shutter').shutter({
+	shutterW: 1000, // 容器宽度
+	shutterH: 358, // 容器高度
+	isAutoPlay: true, // 是否自动播放
+	playInterval: 3000, // 自动播放时间
+	curDisplay: 3, // 当前显示页
+	fullPage: false // 是否全屏展示
+  });
+});
+</script>
+
+
+</body>
+</html>
