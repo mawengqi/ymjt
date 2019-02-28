@@ -42,7 +42,7 @@ public class RooterController extends ActionSupport {
             if(!userList.isEmpty()){
                 session.put(SessionNames.ISLOGIN, true);
                 session.put(SessionNames.USER, userList.get(0));
-                return ResultNames.ADMINPAGE;
+                return ResultNames.ADMINHOMEPAGE;
             }else{
                 ServletActionContext.getRequest().setAttribute("info", "用户名或密码错误");
                 logger.warn(Errors.LOGINERROR);

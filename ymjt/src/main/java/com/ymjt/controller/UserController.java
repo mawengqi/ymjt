@@ -46,10 +46,10 @@ public class UserController extends ActionSupport {
             userService.addUser(user);
             session.put(SessionNames.ISLOGIN, true);
             session.put(SessionNames.USER, user);
-            return ResultNames.HOMEPAGE;
+            return ResultNames.SHOWHOMEPAGE;
         }
         ServletActionContext.getRequest().setAttribute("info", "用户名已被注册");
-        return ResultNames.ADMINLOGINPAGE;
+        return ResultNames.SHOWLOGINPAGE;
     }
 
     /**
@@ -64,14 +64,14 @@ public class UserController extends ActionSupport {
             if(!userList.isEmpty()){
                 session.put(SessionNames.ISLOGIN, true);
                 session.put(SessionNames.USER, userList.get(0));
-                return ResultNames.HOMEPAGE;
+                return ResultNames.SHOWHOMEPAGE;
             }else{
                 ServletActionContext.getRequest().setAttribute("info", "用户名或密码错误");
                 logger.warn(Errors.LOGINERROR);
-                return ResultNames.LOGINPAGE;
+                return ResultNames.SHOWLOGINPAGE;
             }
         }else{
-            return ResultNames.LOGINPAGE;
+            return ResultNames.SHOWLOGINPAGE;
         }
     }
 
@@ -83,6 +83,6 @@ public class UserController extends ActionSupport {
         Boolean isLogin = (Boolean) session.get(SessionNames.ISLOGIN);
         if(isLogin)
             ServletActionContext.getRequest().getSession().invalidate();
-        return ResultNames.LOGINPAGE;
+        return ResultNames.SHOWLOGINPAGE;
     }
 }
