@@ -4,7 +4,7 @@ ul, li { list-style: none; }
 
 .shutter {
   overflow: hidden;
-  height: 358px;
+  height: 500px;
   position: relative;
   border-radius: 10px;
   
