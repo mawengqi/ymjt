@@ -4,9 +4,27 @@
          "http://struts.apache.org/dtds/struts-2.3.dtd">
 
 <struts>
-    <package name="ymjt" extends="struts-default" namespace="/">
-        <action name="student_*" class="userController" method="{1}">
-            <result name="success">/index.jsp</result>
+    <package name="user" extends="struts-default" namespace="/user">
+        <action name="user_*" class="userController" method="{1}">
+            <result name="loginPage">/login.jsp</result>
+            <result name="homePage">/home.jsp</result>
+        </action>
+    </package>
+
+    <package name="rooter" extends="struts-default" namespace="/rooter">
+        <action name="rooter_*" class="rooterController" method="{1}">
+            <result name="adminPage">/admin.jsp</result>
+            <result name="adminLoginPage">/adminLogin.jsp</result>
+        </action>
+    </package>
+
+    <package name="admin" extends="struts-default" namespace="/admin">
+        <interceptors>
+            <interceptor name="adminOnlineInterceptor" class="adminOnlineInterceptor"/>
+        </interceptors>
+        <action name="admin_*" class="adminController" method="{1}">
+            <interceptor-ref name="adminOnlineInterceptor"/>
+            <interceptor-ref name="defaultStack"/>
         </action>
     </package>
 </struts>

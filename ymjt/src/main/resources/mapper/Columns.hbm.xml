@@ -1,9 +1,0 @@
-<hibernate-mapping>
-    <class name="com.ymjt.entity.Columns" table="columns">
-        <id name="id" column="id" type="java.lang.Integer">
-            <generator class="identity"/>
-        </id>
-        <property name="name" column="name" type="java.lang.String" not-null="true" length="20"/>
-        <property name="modelId" column="modelid" type="java.lang.Integer" not-null="true"/>
-    </class>
-</hibernate-mapping>

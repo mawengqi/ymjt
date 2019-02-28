@@ -5,7 +5,12 @@
 
 <struts>
     <package name="ymjt" extends="struts-default" namespace="/">
+        <interceptors>
+            <interceptor name="checkLogin" class="loginInterceptor"></interceptor>
+        </interceptors>
         <action name="student_*" class="userController" method="{1}">
+            <interceptor-ref name="checkLogin"></interceptor-ref>
+            <interceptor-ref name="defaultStack"></interceptor-ref>
             <result name="success">/index.jsp</result>
         </action>
     </package>

@@ -9,8 +9,6 @@
 
   var Shutter = function (elem, options) {
     this.defaults = {
-      shutterW: 1200,
-      shutterH: 500,
       isAutoPlay: false,
       playInterval: 3000,
       curDisplay: 0,

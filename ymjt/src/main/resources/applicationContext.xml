@@ -23,7 +23,7 @@
                 <prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
                 <prop key="hibernate.show_sql">true</prop>
                 <prop key="hibernate.format_sql">true</prop>
-                <prop key="hbm2ddl.auto">create</prop>
+                <prop key="hbm2ddl.auto">update</prop>
             </props>
         </property>
         <property name="mappingLocations" value="classpath:mapper/*.hbm.xml"/>
