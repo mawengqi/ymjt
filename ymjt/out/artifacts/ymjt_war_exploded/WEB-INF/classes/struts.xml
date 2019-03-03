@@ -4,14 +4,31 @@
          "http://struts.apache.org/dtds/struts-2.3.dtd">
 
 <struts>
-    <package name="ymjt" extends="struts-default" namespace="/">
+    <!--<constant name="struts.action.extension" value="action"/>-->
+    <!--用户操作，注册，登录，登出-->
+    <package name="user" extends="struts-default" namespace="/user">
         <interceptors>
-            <interceptor name="checkLogin" class="loginInterceptor"></interceptor>
+            <interceptor name="userInterceptor" class="userInterceptor"/>
         </interceptors>
-        <action name="student_*" class="userController" method="{1}">
-            <interceptor-ref name="checkLogin"></interceptor-ref>
-            <interceptor-ref name="defaultStack"></interceptor-ref>
-            <result name="success">/index.jsp</result>
+        <action name="*" class="userController" method="{1}">
+            <interceptor-ref name="userInterceptor"/>
+            <interceptor-ref name="defaultStack"/>
+            <result name="showHome" type="redirect">/user/showHome.action</result>
+            <result name="showLogin">/page/login.jsp</result>
+            <result name="pageHome">/page/home.jsp</result>
+        </action>
+    </package>
+    <!--管理员操作，登录，登出-->
+    <package name="rooter" extends="struts-default" namespace="/rooter">
+        <interceptors>
+            <interceptor name="rooterInterceptor" class="rooterInterceptor"/>
+        </interceptors>
+        <action name="*" class="rooterController" method="{1}">
+            <interceptor-ref name="rooterInterceptor"/>
+            <interceptor-ref name="defaultStack"/>
+            <result name="showAdminLogin">/page/adminLogin.jsp</result>
+            <result name="showAdminHome" type="redirect">/rooter/showHome.action</result>
+            <result name="pageAdminHome">/page/adminHome.jsp</result>
         </action>
     </package>
 </struts>

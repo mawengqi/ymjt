@@ -4,37 +4,31 @@
          "http://struts.apache.org/dtds/struts-2.3.dtd">
 
 <struts>
-    <!--页面渲染-->
-    <package name="page" extends="struts-default" namespace="/page">
-        <action name="show_*" class="com.ymjt.controller.HomePageController" method="{1}">
-            <result name="login">/page/login.jsp</result>
-            <result name="adminLogin">/page/adminLogin.jsp</result>
-            <result name="home">/page/home.jsp</result>
-            <result name="admin">/page/admin.jsp</result>
-        </action>
-    </package>
+    <!--<constant name="struts.action.extension" value="action"/>-->
     <!--用户操作，注册，登录，登出-->
     <package name="user" extends="struts-default" namespace="/user">
-        <action name="user_*" class="userController" method="{1}">
-            <result name="show_login_page">/page/show_login</result>
-            <result name="show_home_page">/page/show_home</result>
+        <interceptors>
+            <interceptor name="userInterceptor" class="userInterceptor"/>
+        </interceptors>
+        <action name="*" class="userController" method="{1}">
+            <interceptor-ref name="userInterceptor"/>
+            <interceptor-ref name="defaultStack"/>
+            <result name="showHome" type="redirect">/user/showHome.action</result>
+            <result name="showLogin">/page/login.jsp</result>
+            <result name="pageHome">/page/home.jsp</result>
         </action>
     </package>
     <!--管理员操作，登录，登出-->
     <package name="rooter" extends="struts-default" namespace="/rooter">
-        <action name="rooter_*" class="rooterController" method="{1}">
-            <result name="admin_home_page">/page/admin_home</result>
-            <result name="admin_login_page">/page/admin_login</result>
-        </action>
-    </package>
-    <!--后台管理-->
-    <package name="admin" extends="struts-default" namespace="/admin">
         <interceptors>
-            <interceptor name="adminOnlineInterceptor" class="adminOnlineInterceptor"/>
+            <interceptor name="rooterInterceptor" class="rooterInterceptor"/>
         </interceptors>
-        <action name="admin_*" class="adminController" method="{1}">
-            <interceptor-ref name="adminOnlineInterceptor"/>
+        <action name="*" class="rooterController" method="{1}">
+            <interceptor-ref name="rooterInterceptor"/>
             <interceptor-ref name="defaultStack"/>
+            <result name="showAdminLogin">/page/adminLogin.jsp</result>
+            <result name="showAdminHome" type="redirect">/rooter/showHome.action</result>
+            <result name="pageAdminHome">/page/adminHome.jsp</result>
         </action>
     </package>
 </struts>

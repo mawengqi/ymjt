@@ -4,9 +4,14 @@
         "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 <hibernate-mapping>
     <class name="com.ymjt.entity.Model" table="model">
-        <id name="id" column="id" type="java.lang.Integer">
-            <generator class="identity"/>
+        <id name="id" column="id" type="java.lang.String">
+            <generator class="assigned"/>
         </id>
         <property name="name" column="name" type="java.lang.String" not-null="true" length="20"/>
+        <list name="menuList" table="menu" fetch="join">
+            <key column="modelid"/>
+            <index column="time"/>
+            <one-to-many class="com.ymjt.entity.Menu"/>
+        </list>
     </class>
 </hibernate-mapping>

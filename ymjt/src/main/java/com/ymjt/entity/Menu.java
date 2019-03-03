@@ -4,15 +4,15 @@ package com.ymjt.entity;
  * Created by wenqi on 2019/2/28
  */
 public class Menu {
-    private Integer id;
+    private String id;
     private String name;
-    private Integer modelId;
+    private String modelId;
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -24,11 +24,11 @@ public class Menu {
         this.name = name;
     }
 
-    public Integer getModelId() {
+    public String getModelId() {
         return modelId;
     }
 
-    public void setModelId(Integer modelId) {
+    public void setModelId(String modelId) {
         this.modelId = modelId;
     }
 }

@@ -1,66 +1,210 @@
 package com.ymjt.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.opensymphony.xwork2.ActionContext;
-import com.opensymphony.xwork2.ActionSupport;
-import com.ymjt.commons.Errors;
+import com.sun.xml.internal.bind.v2.model.core.ID;
 import com.ymjt.commons.ResultNames;
 import com.ymjt.commons.SessionNames;
+import com.ymjt.commons.UserType;
+import com.ymjt.entity.Menu;
+import com.ymjt.entity.Model;
 import com.ymjt.entity.User;
-import com.ymjt.service.UserService;
+import com.ymjt.utils.IDS;
 import com.ymjt.utils.ValidateUtils;
 import org.apache.log4j.Logger;
 import org.apache.struts2.ServletActionContext;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by wenqi on 2019/2/28
- */
 @Controller
 @Scope("prototype")
-public class RooterController extends ActionSupport {
-    public static Logger logger = Logger.getLogger(RooterController.class);
-
+@Transactional
+public class RooterController {
+    private static Logger logger = Logger.getLogger(RooterController.class);
     @Autowired
-    private UserService userService;
-    public User user;
+    private SessionFactory sessionFactory;
+    private User user;
 
     /**
-     * 管理员登录
+     * 登录
      */
     public String login() throws Exception {
-        ValidateUtils.check(user,user.getUsername(), user.getPassword());
-        Map<String, Object> session = ActionContext.getContext().getSession();
-        Boolean isLogin = (Boolean) session.get(SessionNames.ISLOGIN);
-        if(!isLogin){
-            user.setId(null);
-            List<User> userList = userService.findUsers(user, null, null);
-            if(!userList.isEmpty()){
-                session.put(SessionNames.ISLOGIN, true);
-                session.put(SessionNames.USER, userList.get(0));
-                return ResultNames.ADMINHOMEPAGE;
-            }else{
-                ServletActionContext.getRequest().setAttribute("info", "用户名或密码错误");
-                logger.warn(Errors.LOGINERROR);
-                return ResultNames.ADMINLOGINPAGE;
-            }
-        }else{
-            return ResultNames.ADMINLOGINPAGE;
+        ValidateUtils.check(user, user.getUsername(), user.getPassword());
+        Session session = sessionFactory.getCurrentSession();
+        Map<String, Object> sessionMap = ActionContext.getContext().getSession();
+        List userList = session.createQuery("from User where username = :username and password = :password and type = :type")
+                .setString("username", user.getUsername()).setString("password", user.getPassword()).setInteger("type", UserType.ROOTER).list();
+        if(!userList.isEmpty()) {
+            sessionMap.put(SessionNames.ISLOGIN, true);
+            sessionMap.put(SessionNames.USER, userList.get(0));
+            return ResultNames.SHOWADMINHOME;
+        }else {
+            ActionContext.getContext().getValueStack().set("info", "用户名或密码输入错误");
+            return ResultNames.SHOWADMINLOGIN;
         }
     }
 
     /**
-     * 管理员登出
+     * 注册
      */
-    public String logout(){
-        Map<String, Object> session = ActionContext.getContext().getSession();
-        Boolean isLogin = (Boolean) session.get(SessionNames.ISLOGIN);
-        if(isLogin)
+    public String regist() throws Exception {
+        ValidateUtils.check(user, user.getUsername(), user.getPassword());
+        Session session = sessionFactory.getCurrentSession();
+//        Transaction transaction = session.beginTransaction();
+        Map<String, Object> sessionMap = ActionContext.getContext().getSession();
+        List userList = session.createQuery("from User where username = :username").setString("username", user.getUsername()).list();
+        if(userList.isEmpty()) {
+            user.setId(IDS.getId());
+            user.setType(UserType.ROOTER);
+            session.save(user);
+            sessionMap.put(SessionNames.ISLOGIN, true);
+            sessionMap.put(SessionNames.USER, user);
+//            transaction.commit();
+//            session.flush();
+            return ResultNames.SHOWADMINHOME;
+        }else {
+            ActionContext.getContext().getValueStack().set("info", "用户名已被注册");
+            return ResultNames.SHOWADMINLOGIN;
+        }
+    }
+
+    /**
+     * 登出
+     */
+    public String logout() {
+        Map<String, Object> map = ActionContext.getContext().getSession();
+        if(map.get(SessionNames.ISLOGIN) != null)
             ServletActionContext.getRequest().getSession().invalidate();
-        return ResultNames.ADMINLOGINPAGE;
+        return ResultNames.SHOWADMINLOGIN;
+    }
+
+    /**
+     * 加载 model
+     * @return modelList
+     */
+    public void loadModel() throws IOException {
+        Session session = sessionFactory.getCurrentSession();
+        List modelList = session.createQuery("from Model").list();
+        HttpServletResponse response = ServletActionContext.getResponse();
+        response.getWriter().write(JSON.toJSONString(modelList));
+    }
+
+    /**
+     * 添加模块
+     * name
+     * @return modelId
+     */
+    public void addModel() throws Exception {
+        Session session = sessionFactory.getCurrentSession();
+        HttpServletRequest request = ServletActionContext.getRequest();
+        String name = request.getParameter("name");
+        HttpServletResponse response = ServletActionContext.getResponse();
+        ValidateUtils.check(name);
+        Model model = new Model();
+        model.setId(IDS.getId());
+        model.setName(name);
+        session.save(model);
+        String directoryPath = ServletActionContext.getServletContext().getRealPath("/static/image/news/" + model.getId());
+        File file = new File(directoryPath);
+        if(!file.exists())
+            file.mkdir();
+        response.getWriter().write(model.getId());
+    }
+
+    /**
+     * 删除模块
+     * modelId
+     * @return modelId
+     */
+    public void deleteModel() throws Exception {
+        Session session = sessionFactory.getCurrentSession();
+        HttpServletRequest request = ServletActionContext.getRequest();
+        HttpServletResponse response = ServletActionContext.getResponse();
+        String modelId = request.getParameter("modelId");
+        ValidateUtils.check(modelId);
+        //删除model,删除model下的栏目，栏目下的文章,包括文章的图片
+        session.createQuery("delete Model where id = :id").setString("id", modelId).executeUpdate();
+        List<Menu> menuList = session.createQuery("from Menu where modelid = :modelid").setString("modelid", modelId).list();
+        for(Menu menu : menuList) {
+            session.createQuery("delete article where menuid = :menuid").setString("menuid", menu.getId()).executeUpdate();
+            session.createQuery("delete Menu where id = :id").setString("id", menu.getId()).executeUpdate();
+        }
+        String directoryPath = ServletActionContext.getServletContext().getRealPath("/static/image/news/" + modelId);
+        File file = new File(directoryPath);
+        if(file.exists())
+            file.delete();
+        response.getWriter().write(modelId);
+    }
+
+    /**
+     * 添加栏目
+     * modelId, name
+     * @return menuId
+     */
+    public void addMenu() throws Exception {
+        Session session = sessionFactory.getCurrentSession();
+        HttpServletRequest request = ServletActionContext.getRequest();
+        HttpServletResponse response = ServletActionContext.getResponse();
+        String modelId = request.getParameter("modelId");
+        String name = request.getParameter("name");
+        ValidateUtils.check(modelId, name);
+        Menu menu = new Menu();
+        menu.setId(IDS.getId());
+        menu.setName(name);
+        menu.setModelId(modelId);
+        session.save(menu);
+        String directoryPath = ServletActionContext.getServletContext().getRealPath("/static/image/news/" + modelId + "/" + menu.getId());
+        File file = new File(directoryPath);
+        if(!file.exists())
+            file.mkdir();
+        response.getWriter().write(menu.getId());
+    }
+
+    /**
+     * 删除栏目
+     * modelId, menuId
+     * @return id
+     */
+    public void deleteMenu() throws Exception {
+        Session session = sessionFactory.getCurrentSession();
+        HttpServletRequest request = ServletActionContext.getRequest();
+        HttpServletResponse response = ServletActionContext.getResponse();
+        String modelId = request.getParameter("modelId");
+        String menuId = request.getParameter("menuId");
+        ValidateUtils.check(modelId, menuId);
+        session.createQuery("delete Menu where id = :id").setString("id", menuId).executeUpdate();
+        session.createQuery("delete Article where menuid = :menuid").setString("menuid", menuId).executeUpdate();
+        String directoryPath = ServletActionContext.getServletContext().getRealPath("/static/image/news/" + modelId + "/" + menuId);
+        File file = new File(directoryPath);
+        if(file.exists())
+            file.delete();
+        response.getWriter().write(menuId);
+    }
+
+
+
+
+
+    public String showHome() {
+        return ResultNames.PAGEADMINHOME;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

@@ -5,8 +5,8 @@
 
 <hibernate-mapping>
     <class name="com.ymjt.entity.User" table="user">
-        <id name="id" column="id" type="java.lang.Integer">
-            <generator class="identity"/>
+        <id name="id" column="id" type="java.lang.String">
+            <generator class="assigned"/>
         </id>
         <property name="username" column="username" type="java.lang.String" not-null="true" length="10"/>
         <property name="password" column="password" type="java.lang.String" not-null="true" length="20"/>
