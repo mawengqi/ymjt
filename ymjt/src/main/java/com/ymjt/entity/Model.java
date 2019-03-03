@@ -1,6 +1,7 @@
 package com.ymjt.entity;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by wenqi on 2019/2/28
@@ -8,7 +9,7 @@ import java.util.List;
 public class Model {
     private String id;
     private String name;
-    List<Menu> menuList;
+    Set<Menu> menuList;
 
     public String getId() {
         return id;
@@ -26,11 +27,11 @@ public class Model {
         this.name = name;
     }
 
-    public List<Menu> getMenuList() {
+    public Set<Menu> getMenuList() {
         return menuList;
     }
 
-    public void setMenuList(List<Menu> menuList) {
+    public void setMenuList(Set<Menu> menuList) {
         this.menuList = menuList;
     }
 }

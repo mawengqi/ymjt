@@ -17,22 +17,18 @@
         <div class="form-group col-xs-4">
             <label>选择模块</label>
             <select class="form-control" v-model="modelId">
-                <option>1</option>
-                <option>2</option>
-                <option>3</option>
-                <option>4</option>
-                <option>5</option>
+                <template  v-for="model in models">
+                    <option v-if="model != null" :value="model.id">{{model.name}}</option>
+                </template>
             </select>
         </div>
         <!--选择栏目-->
         <div class="form-group col-xs-4">
             <label>选择栏目</label>
             <select class="form-control" v-model="menuId">
-                <option>1</option>
-                <option>2</option>
-                <option>3</option>
-                <option>4</option>
-                <option>5</option>
+                <template v-for="menu in menus">
+                    <option v-if="menu != null" :value="menu.id">{{menu.name}}</option>
+                </template>
             </select>
         </div>
     </div>
@@ -164,13 +160,13 @@
     var vue = new Vue({
         el : "#vue",
         created : function() {
-            this.loadArticles()
+            this.loadModel()
+            // this.loadArticles()
         },
         data : {
-            articles : [
-                {id : 1, title : "hello", time : "2018-3-1"},
-                {id : 2, title : "word", time : "2019-2-19"}
-            ],
+            articles : [],
+            models : [],
+            menus : [],
             modelId : 0,
             menuId : 0,
             articleId : "",
@@ -182,9 +178,17 @@
             editorChange : "",
         },
         methods : {
-            //初始化加载 第一个模块的第一个栏目的文章
-            loadArticles : function() {
-
+            //初始化model
+            loadModel : function() {
+                $.ajax({
+                    url : "${pageContext.request.contextPath}/rooter/loadModel.action",
+                    type : "get",
+                    dataType : "json",
+                    success : function(data) {
+                        vue.models = data
+                        vue.modelId = vue.models[0].id
+                    }
+                })
             },
             //显示添加文章
             goAddArticle : function(articleId) {
@@ -195,42 +199,117 @@
                 if(/[\u4e00-\u9fa5\w]{1,20}/.test(this.articleTitle)) {
                     //发送ajax请求, 返回这条新添加的article,并放到articles中
                     $("#myModal").modal("hide")
-                    this.articleContent = this.editorAdd.txt.html()
-                    alert(this.articleContent)
-                    this.articles.push({id: this.articles.length+1, title: this.articleTitle})
-                    this.articleTitle = ""
+                    $.ajax({
+                        url : "${pageContext.request.contextPath}/rooter/addArticle.action",
+                        type : "post",
+                        data : {title : this.articleTitle, content : this.editorChange.txt.html(), menuId : this.menuId},
+                        success : function(data) {
+                            vue.articles.push({id: data, title: vue.articleTitle})
+                            vue.articleTitle = ""
+                        }
+                    })
                 }
             },
             //查看文章
             goShowArticle : function(articleId) {
                 //发送ajax加载文章,并添加到this.articleContent
-                $("#show").html("<h1>hello world</h1>")
+                $.ajax({
+                    url : "${pageContext.request.contextPath}/rooter/findArticle.action",
+                    type : "get",
+                    dataType : "json",
+                    data : {articleId : articleId},
+                    success : function(data) {
+                        if(data != null) {
+                            vue.articleTitle = data.title
+                            vue.articleContent = data.content
+                            $("#show").html(articleContent)
+                        }
+                    }
+                })
             },
             //显示修改文章
             goChangeArticle : function(articleId) {
                 this.operateId = 1
                 $("#myModal").modal("show")
                 //通过articleid获取article内容,并设置articleTitle与articleContent,conent不需要绑定组件
-
-                //例子
-                this.articleId = articleId
-                this.articleTitle = "hello world"
-                this.editorChange.txt.html("<p>用 JS 设置的内容</p>")
+                $.ajax({
+                    url : "${pageContext.request.contextPath}/rooter/findArticle.action",
+                    type : "get",
+                    dataType : "json",
+                    data : {articleId : articleId},
+                    success : function(data) {
+                        if(data != null) {
+                            vue.articleId = articleId
+                            vue.articleTitle = data.title
+                            vue.articleContent = data.content
+                            $("#show").html(articleContent)
+                        }
+                    }
+                })
             },
             //修改文章
             changeArticle : function() {
                 //发送ajax请求,根据this.articleId修改this.title,与this.editorChange.txt.html()
-                alert(this.editorChange.txt.html())
+                if(/[\u4e00-\u9fa5\w]{1,20}/.test(this.articleTitle)) {
+                    $.ajax({
+                        url : "${pageContext.request.contextPath}/rooter/changeArticle.action",
+                        type : "post",
+                        data : {title : this.articleTitle, content : this.editorChange.txt.html(), articleId : this.articleId},
+                        success : function(data) {
+                            if(vue.articleId == data) {
+                                for(let i=0; i<vue.articles.length; i++){
+                                    if(vue.articles[i].articleId == data) {
+                                        vue.articles[i].title == vue.articleTitle
+                                        return
+                                    }
+                                }
+                            }
+                        }
+                    })
+                }
             },
             //删除文章
             deleteArticle : function(articleId) {
                 for(var i = 0; i < this.articles.length; i++) {
                     if(this.articles[i].id == articleId) {
                         //这里需要请求后台,后台确认删除后，前端再执行删除
-                        this.articles.splice(i, 1);
+                        let index = i;
+                        $.ajax({
+                            url : "${pageContext.request.contextPath}/rooter/deleteArticle.action",
+                            type : "get",
+                            data : {articleId : articleId},
+                            success : function(data) {
+                                if(articleId == data) {
+                                    this.articles.splice(index, 1);
+                                    return
+                                }
+                            }
+                        })
+                    }
+                }
+            }
+        },
+        watch : {
+            modelId : function(newModelId, oldModelId) {
+                for(var i=0; i<this.models.length; i++) {
+                    if(this.models[i].id == newModelId) {
+                        this.menus = this.models[i].menuList
+                        this.menuId = this.models[i].menuList[0]
                         return
                     }
                 }
+            },
+            //menuId改变，加载相应的文章
+            menuId : function(newMenuId, oldMenuId) {
+                $.ajax({
+                    url : "${pageContext.request.contextPath}/rooter/loadArticle.action",
+                    type: "get",
+                    dataType : "json",
+                    data : {menuId : newMenuId},
+                    success : function(data) {
+                        vue.articles = data
+                    }
+                })
             }
         }
     })

@@ -8,10 +8,9 @@
             <generator class="assigned"/>
         </id>
         <property name="name" column="name" type="java.lang.String" not-null="true" length="20"/>
-        <list name="menuList" table="menu" fetch="join">
+        <set name="menuList" table="menu" fetch="join">
             <key column="modelid"/>
-            <index column="time"/>
             <one-to-many class="com.ymjt.entity.Menu"/>
-        </list>
+        </set>
     </class>
 </hibernate-mapping>

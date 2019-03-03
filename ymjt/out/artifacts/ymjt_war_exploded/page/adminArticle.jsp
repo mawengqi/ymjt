@@ -17,22 +17,18 @@
         <div class="form-group col-xs-4">
             <label>选择模块</label>
             <select class="form-control" v-model="modelId">
-                <option>1</option>
-                <option>2</option>
-                <option>3</option>
-                <option>4</option>
-                <option>5</option>
+                <template  v-for="model in models">
+                    <option v-if="model != null" :value="model.id">{{model.name}}</option>
+                </template>
             </select>
         </div>
         <!--选择栏目-->
         <div class="form-group col-xs-4">
             <label>选择栏目</label>
             <select class="form-control" v-model="menuId">
-                <option>1</option>
-                <option>2</option>
-                <option>3</option>
-                <option>4</option>
-                <option>5</option>
+                <template v-for="menu in menus">
+                    <option v-if="menu != null" :value="menu.id">{{menu.name}}</option>
+                </template>
             </select>
         </div>
     </div>
@@ -164,13 +160,13 @@
     var vue = new Vue({
         el : "#vue",
         created : function() {
-            this.loadArticles()
+            this.loadModel()
+            // this.loadArticles()
         },
         data : {
-            articles : [
-                {id : 1, title : "hello", time : "2018-3-1"},
-                {id : 2, title : "word", time : "2019-2-19"}
-            ],
+            articles : [],
+            models : [],
+            menus : [],
             modelId : 0,
             menuId : 0,
             articleId : "",
@@ -182,6 +178,18 @@
             editorChange : "",
         },
         methods : {
+            //初始化model
+            loadModel : function() {
+                $.ajax({
+                    url : "${pageContext.request.contextPath}/rooter/loadModel.action",
+                    type : "get",
+                    dataType : "json",
+                    success : function(data) {
+                        vue.models = data
+                        vue.modelId = vue.models[0].id
+                    }
+                })
+            },
             //初始化加载 第一个模块的第一个栏目的文章
             loadArticles : function() {
 
@@ -231,6 +239,20 @@
                         return
                     }
                 }
+            }
+        },
+        watch : {
+            modelId : function(newModelId, oldModelId) {
+                for(var i=0; i<this.models.length; i++) {
+                    if(this.models[i].id == newModelId) {
+                        this.menus = this.models[i].menuList
+                        this.menuId = this.models[i].menuList[0]
+                        return
+                    }
+                }
+            },
+            menuId : function(newMenuId, oldMenuId) {
+
             }
         }
     })

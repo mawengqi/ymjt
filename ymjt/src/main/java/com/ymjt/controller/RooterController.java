@@ -6,6 +6,7 @@ import com.sun.xml.internal.bind.v2.model.core.ID;
 import com.ymjt.commons.ResultNames;
 import com.ymjt.commons.SessionNames;
 import com.ymjt.commons.UserType;
+import com.ymjt.entity.Article;
 import com.ymjt.entity.Menu;
 import com.ymjt.entity.Model;
 import com.ymjt.entity.User;
@@ -192,7 +193,95 @@ public class RooterController {
         response.getWriter().write(menuId);
     }
 
+//*********************文章管理*******************************************
+    /**
+     * 加载文章列表
+     *  menuId
+     * @return articleList
+     */
+    public void loadArticle() throws Exception {
+        Session session = sessionFactory.getCurrentSession();
+        HttpServletRequest request = ServletActionContext.getRequest();
+        HttpServletResponse response = ServletActionContext.getResponse();
+        String menuId = request.getParameter("menuId");
+        ValidateUtils.check(menuId);
+        List articleList = session.createQuery("select id, title, time from Article where menuid = :menuid").setString("menuid", menuId).list();
+        response.getWriter().write(JSON.toJSONString(articleList));
+    }
 
+    /**
+     * 查找指定文章
+     * articleId
+     * @return article
+     */
+    public void findArticle() throws Exception {
+        Session session = sessionFactory.getCurrentSession();
+        HttpServletRequest request = ServletActionContext.getRequest();
+        HttpServletResponse response = ServletActionContext.getResponse();
+        String articleId = request.getParameter("articleId");
+        ValidateUtils.check(articleId);
+        List articleList = session.createQuery("from Article where id = :id").setString("id", articleId).list();
+        if(!articleList.isEmpty())
+            response.getWriter().write(JSON.toJSONString(articleList.get(0)));
+    }
+
+
+
+
+    /**
+     * 添加文章
+     * title, content, menuId
+     * @return id
+     */
+    public void addArticle() throws Exception {
+        Session session = sessionFactory.getCurrentSession();
+        HttpServletRequest request = ServletActionContext.getRequest();
+        HttpServletResponse response = ServletActionContext.getResponse();
+        String title = request.getParameter("title");
+        String content = request.getParameter("content");
+        String menuId = request.getParameter("menuId");
+        ValidateUtils.check(title, content, menuId);
+        Article article = new Article();
+        article.setId(IDS.getId());
+        article.setTitle(title);
+        article.setContent(content);
+        article.setMenuId(menuId);
+        session.save(article);
+        response.getWriter().write(article.getId());
+    }
+
+    /**
+     * 修改文章
+     * title, content, articleId
+     * @return articleId
+     */
+    public void changeArticle() throws Exception {
+        Session session = sessionFactory.getCurrentSession();
+        HttpServletRequest request = ServletActionContext.getRequest();
+        HttpServletResponse response = ServletActionContext.getResponse();
+        String title = request.getParameter("title");
+        String content = request.getParameter("content");
+        String articleId = request.getParameter("articleId");
+        ValidateUtils.check(title, content, articleId);
+        session.createQuery("update Article set title = :title and content = :content where id = :id")
+                .setString("title", title).setString("content", content).setString("id", articleId).executeUpdate();
+        response.getWriter().write(articleId);
+    }
+
+    /**
+     * 删除文章
+     * articleId
+     * @return articleId
+     */
+    public void deleteArticle() throws Exception {
+        Session session = sessionFactory.getCurrentSession();
+        HttpServletRequest request = ServletActionContext.getRequest();
+        HttpServletResponse response = ServletActionContext.getResponse();
+        String articleId = request.getParameter("articleId");
+        ValidateUtils.check(articleId);
+        session.createQuery("delete Article where id = :id").setString("id", articleId).executeUpdate();
+        response.getWriter().write(articleId);
+    }
 
 
 
