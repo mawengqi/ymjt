@@ -48,10 +48,10 @@
             <tbody>
             <tr v-for="article in articles">
                 <td><span>{{article.title}}</span></td>
-                <td><span>{{article.time}}</span></td>
-                <td><span style="cursor: pointer" class="text-info" @click="goShowArticle(article.id)">查看</span></td>
-                <td><span style="cursor: pointer" class="text-info" @click="goChangeArticle(article.id)">修改</span></td>
-                <td><span style="cursor: pointer" class="text-danger" @click="deleteArticle(article.id)">删除</span></td>
+                <td><span>{{article.time|dataFilter}}</span></td>
+                <td><span style="cursor: pointer" class="text-info" @click="goShowArticle(article)">查看</span></td>
+                <td><span style="cursor: pointer" class="text-info" @click="goChangeArticle(article)">修改</span></td>
+                <td><span style="cursor: pointer" class="text-danger" @click="deleteArticle(article)">删除</span></td>
             </tr>
             </tbody>
             <tfoot>
@@ -104,20 +104,21 @@
                         &times;
                     </button>
                     <h4 class="modal-title">
-                        添加文章
+                        修改文章
                     </h4>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
                         <label class="control-label">标题</label>
                         <div>
-                            <input type="text" class="form-control" placeholder="请输入标题" maxlength="20" v-model="articleTitle">
+                            <input type="text" class="form-control" placeholder="请输入标题" maxlength="20" v-model="article.title">
                         </div>
                     </div>
                     <!--富文本编辑-->
                     <div class="form-group">
                         <label class="control-label">内容</label>
                         <div id="editorChange">
+                            <div v-html="article.content"></div>
                         </div>
                     </div>
                 </div>
@@ -130,7 +131,7 @@
                 </div>
             </div><!-- /.modal-content -->
             <!--展示文章-->
-            <div class="modal-content" v-show="operateId == 1">
+            <div class="modal-content" v-show="operateId == 2">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                         &times;
@@ -140,13 +141,10 @@
                     </h4>
                 </div>
                 <div class="modal-body" id="show">
-
+                    <div v-html="article.content"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">关闭
-                    </button>
-                    <button type="button" class="btn btn-primary" @click="changeArticle">
-                        提交更改
                     </button>
                 </div>
             </div><!-- /.modal-content -->
@@ -172,10 +170,11 @@
             articleId : "",
             //0 为添加文章， 1 修改文章， 2 展示文章
             operateId : "",
-            articleTitle : "",
-            articleContent : "",
             editorAdd : "",
             editorChange : "",
+            article : "",
+            articleContent : "",
+            articleTitle : "",
         },
         methods : {
             //初始化model
@@ -190,12 +189,8 @@
                     }
                 })
             },
-            //初始化加载 第一个模块的第一个栏目的文章
-            loadArticles : function() {
-
-            },
             //显示添加文章
-            goAddArticle : function(articleId) {
+            goAddArticle : function() {
                 this.operateId = 0
                 $("#myModal").modal("show")
             },
@@ -203,40 +198,61 @@
                 if(/[\u4e00-\u9fa5\w]{1,20}/.test(this.articleTitle)) {
                     //发送ajax请求, 返回这条新添加的article,并放到articles中
                     $("#myModal").modal("hide")
-                    this.articleContent = this.editorAdd.txt.html()
-                    alert(this.articleContent)
-                    this.articles.push({id: this.articles.length+1, title: this.articleTitle})
-                    this.articleTitle = ""
+                    $.ajax({
+                        url : "${pageContext.request.contextPath}/rooter/addArticle.action",
+                        type : "post",
+                        data : {title : this.articleTitle, content : this.editorAdd.txt.html(), menuId : this.menuId},
+                        success : function(data) {
+                            let article = {id: data, title: vue.articleTitle, title : new Date().toDateString()}
+                            vue.articles.push(article)
+                        }
+                    })
                 }
             },
             //查看文章
-            goShowArticle : function(articleId) {
-                //发送ajax加载文章,并添加到this.articleContent
-                $("#show").html("<h1>hello world</h1>")
+            goShowArticle : function(article) {
+                this.operateId = 2
+                this.article = article
+                $("#myModal").modal("show")
             },
             //显示修改文章
-            goChangeArticle : function(articleId) {
+            goChangeArticle : function(article) {
                 this.operateId = 1
                 $("#myModal").modal("show")
-                //通过articleid获取article内容,并设置articleTitle与articleContent,conent不需要绑定组件
-
-                //例子
-                this.articleId = articleId
-                this.articleTitle = "hello world"
-                this.editorChange.txt.html("<p>用 JS 设置的内容</p>")
+                this.article = article
             },
             //修改文章
             changeArticle : function() {
-                //发送ajax请求,根据this.articleId修改this.title,与this.editorChange.txt.html()
-                alert(this.editorChange.txt.html())
+                if(/[\u4e00-\u9fa5\w]{1,20}/.test(this.article.title)) {
+                    $.ajax({
+                        url : "${pageContext.request.contextPath}/rooter/changeArticle.action",
+                        type : "post",
+                        data : {title : this.article.title, content : this.editorChange.txt.html(), articleId : this.article.id},
+                        success : function(data) {
+                            $("#myModal").modal("hide")
+                            vue.article.content = vue.editorChange.txt.html()
+                        }
+                    })
+                }
             },
             //删除文章
-            deleteArticle : function(articleId) {
+            deleteArticle : function(article) {
+                let articleId = article.id
                 for(var i = 0; i < this.articles.length; i++) {
                     if(this.articles[i].id == articleId) {
                         //这里需要请求后台,后台确认删除后，前端再执行删除
-                        this.articles.splice(i, 1);
-                        return
+                        let index = i;
+                        $.ajax({
+                            url : "${pageContext.request.contextPath}/rooter/deleteArticle.action",
+                            type : "get",
+                            data : {articleId : articleId},
+                            success : function(data) {
+                                if(articleId == data) {
+                                    vue.articles.splice(index, 1);
+                                    return
+                                }
+                            }
+                        })
                     }
                 }
             }
@@ -246,13 +262,27 @@
                 for(var i=0; i<this.models.length; i++) {
                     if(this.models[i].id == newModelId) {
                         this.menus = this.models[i].menuList
-                        this.menuId = this.models[i].menuList[0]
+                        this.menuId = this.models[i].menuList[0].id
                         return
                     }
                 }
             },
+            //menuId改变，加载相应的文章
             menuId : function(newMenuId, oldMenuId) {
-
+                $.ajax({
+                    url : "${pageContext.request.contextPath}/rooter/loadArticle.action",
+                    type: "get",
+                    dataType : "json",
+                    data : {menuId : newMenuId},
+                    success : function(data) {
+                        vue.articles = data
+                    }
+                })
+            }
+        },
+        filters : {
+            dataFilter : function(time) {
+                return new Date(time).toDateString()
             }
         }
     })

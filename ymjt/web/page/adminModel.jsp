@@ -258,8 +258,6 @@
                 //根据modelId, id 删除menu
                 $("#myModal").modal("hide")
                 //发送ajax请求到服务器，服务器删除menu 后，前端再删除
-                alert(this.menuList[this.menuList.length-1].id)
-                alert(menuId)
                 for(var i=0;i<this.menuList.length;i++){
                     if(this.menuList[i] == null)
                         continue

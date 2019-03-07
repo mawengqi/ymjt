@@ -2,7 +2,6 @@ package com.ymjt.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.opensymphony.xwork2.ActionContext;
-import com.sun.xml.internal.bind.v2.model.core.ID;
 import com.ymjt.commons.ResultNames;
 import com.ymjt.commons.SessionNames;
 import com.ymjt.commons.UserType;
@@ -138,7 +137,7 @@ public class RooterController {
         session.createQuery("delete Model where id = :id").setString("id", modelId).executeUpdate();
         List<Menu> menuList = session.createQuery("from Menu where modelid = :modelid").setString("modelid", modelId).list();
         for(Menu menu : menuList) {
-            session.createQuery("delete article where menuid = :menuid").setString("menuid", menu.getId()).executeUpdate();
+            session.createQuery("delete Article where menuid = :menuid").setString("menuid", menu.getId()).executeUpdate();
             session.createQuery("delete Menu where id = :id").setString("id", menu.getId()).executeUpdate();
         }
         String directoryPath = ServletActionContext.getServletContext().getRealPath("/static/image/news/" + modelId);
@@ -205,7 +204,7 @@ public class RooterController {
         HttpServletResponse response = ServletActionContext.getResponse();
         String menuId = request.getParameter("menuId");
         ValidateUtils.check(menuId);
-        List articleList = session.createQuery("select id, title, time from Article where menuid = :menuid").setString("menuid", menuId).list();
+        List articleList = session.createQuery("from Article where menuid = :menuid").setString("menuid", menuId).list();
         response.getWriter().write(JSON.toJSONString(articleList));
     }
 
@@ -214,16 +213,16 @@ public class RooterController {
      * articleId
      * @return article
      */
-    public void findArticle() throws Exception {
-        Session session = sessionFactory.getCurrentSession();
-        HttpServletRequest request = ServletActionContext.getRequest();
-        HttpServletResponse response = ServletActionContext.getResponse();
-        String articleId = request.getParameter("articleId");
-        ValidateUtils.check(articleId);
-        List articleList = session.createQuery("from Article where id = :id").setString("id", articleId).list();
-        if(!articleList.isEmpty())
-            response.getWriter().write(JSON.toJSONString(articleList.get(0)));
-    }
+//    public void findArticle() throws Exception {
+//        Session session = sessionFactory.getCurrentSession();
+//        HttpServletRequest request = ServletActionContext.getRequest();
+//        HttpServletResponse response = ServletActionContext.getResponse();
+//        String articleId = request.getParameter("articleId");
+//        ValidateUtils.check(articleId);
+//        List articleList = session.createQuery("from Article where id = :id").setString("id", articleId).list();
+//        if(!articleList.isEmpty())
+//            response.getWriter().write(JSON.toJSONString(articleList.get(0)));
+//    }
 
 
 
@@ -263,7 +262,7 @@ public class RooterController {
         String content = request.getParameter("content");
         String articleId = request.getParameter("articleId");
         ValidateUtils.check(title, content, articleId);
-        session.createQuery("update Article set title = :title and content = :content where id = :id")
+        session.createQuery("update Article set title = :title, content = :content where id = :id")
                 .setString("title", title).setString("content", content).setString("id", articleId).executeUpdate();
         response.getWriter().write(articleId);
     }
