@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Controller
 @Scope("prototype")
@@ -41,6 +42,7 @@ public class RooterController {
      */
     public String login() throws Exception {
         ValidateUtils.check(user, user.getUsername(), user.getPassword());
+        System.out.println(user.getUsername());
         Session session = sessionFactory.getCurrentSession();
         Map<String, Object> sessionMap = ActionContext.getContext().getSession();
         List userList = session.createQuery("from User where username = :username and password = :password and type = :type")
@@ -280,6 +282,63 @@ public class RooterController {
         ValidateUtils.check(articleId);
         session.createQuery("delete Article where id = :id").setString("id", articleId).executeUpdate();
         response.getWriter().write(articleId);
+    }
+
+    /**
+     * *******************用户管理*********************
+     */
+
+    /**
+     * 加载用户列表
+     */
+    public void loadUsers() throws IOException {
+        Session session = sessionFactory.getCurrentSession();
+        HttpServletRequest request = ServletActionContext.getRequest();
+        HttpServletResponse response = ServletActionContext.getResponse();
+        List userList = session.createQuery("from User").list();
+        response.getWriter().write(JSON.toJSONString(userList));
+    }
+
+    /**
+     * 删除用户
+     * userId
+     * @return userId
+     */
+
+    public void deleteUser() throws Exception {
+        Session session = sessionFactory.getCurrentSession();
+        HttpServletRequest request = ServletActionContext.getRequest();
+        HttpServletResponse response = ServletActionContext.getResponse();
+        String userId = request.getParameter("userId");
+        ValidateUtils.check(userId);
+        session.createQuery("delete from User where id = :id").setString("id", userId).executeUpdate();
+        response.getWriter().write(userId);
+    }
+
+    /**
+     * 添加用户
+     * username, type, password
+     * @return userId
+     */
+    public void addUser() throws IOException {
+        Session session = sessionFactory.getCurrentSession();
+        HttpServletRequest request = ServletActionContext.getRequest();
+        HttpServletResponse response = ServletActionContext.getResponse();
+        String username = request.getParameter("username");
+        Integer type = Integer.parseInt(request.getParameter("type"));
+        String password = request.getParameter("password");
+        List users = session.createQuery("from User where username = :username").setString("username", username).list();
+        if(users.isEmpty()) {
+            User user = new User();
+            user.setId(IDS.getId());
+            user.setUsername(username);
+            user.setPassword(password);
+            user.setType(type);
+            session.save(user);
+            response.getWriter().write(user.getId());
+        } else {
+            response.getWriter().write("用户名已存在");
+        }
     }
 
 

@@ -23,7 +23,7 @@
 </div>
 </body>
 <script>
-    var changeUrls = ["${pageContext.request.contextPath}/page/adminModel.jsp", "${pageContext.request.contextPath}/page/adminArticle.jsp", "${pageContext.request.contextPath}/page/adminUser.jsp"];
+    var changeUrls = ["${pageContext.request.contextPath}/page/adminModel.jsp", "${pageContext.request.contextPath}/page/adminArticle.jsp", "${pageContext.request.contextPath}/page/adminFile.jsp", "${pageContext.request.contextPath}/page/adminUser.jsp"];
     function change(index){
         $("iframe").eq(0).attr("src", changeUrls[index]);
     }
