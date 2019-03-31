@@ -13,7 +13,7 @@
         <action name="*" class="userController" method="{1}">
             <interceptor-ref name="userInterceptor"/>
             <interceptor-ref name="defaultStack"/>
-            <result name="showHome" type="redirect">/user/showHome.action</result>
+            <result name="showHome" type="redirect">/page/home.jsp</result>
             <result name="showLogin">/page/login.jsp</result>
             <result name="pageHome">/page/home.jsp</result>
         </action>

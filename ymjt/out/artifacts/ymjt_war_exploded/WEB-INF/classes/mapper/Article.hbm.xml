@@ -9,8 +9,9 @@
         </id>
         <property name="title" column="title" type="java.lang.String" not-null="true" length="20"/>
         <property name="content" column="content" type="java.lang.String" not-null="true"/>
-        <property name="images" column="images" type="java.lang.String"/>
+        <property name="image" column="image" type="java.lang.String"/>
         <property name="menuId" column="menuid" type="java.lang.String" not-null="true"/>
         <property name="time" column="time" type="java.util.Date"/>
+        <property name="imageBanner" column="imagebanner" type="java.lang.Integer"/>
     </class>
 </hibernate-mapping>

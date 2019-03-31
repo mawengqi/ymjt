@@ -41,6 +41,7 @@
                 <th>标题</th>
                 <th>时间</th>
                 <th>查看</th>
+                <th>附件</th>
                 <th>修改</th>
                 <th>删除</th>
             </tr>
@@ -48,8 +49,9 @@
             <tbody>
             <tr v-for="article in articles">
                 <td><span>{{article.title}}</span></td>
-                <td><span>{{article.time|dataFilter}}</span></td>
+                <td><span>{{article.time|dateFilter}}</span></td>
                 <td><span style="cursor: pointer" class="text-info" @click="goShowArticle(article)">查看</span></td>
+                <td><span style="cursor: pointer" class="text-info" @click="goShowAttachment(article)">附件</span></td>
                 <td><span style="cursor: pointer" class="text-info" @click="goChangeArticle(article)">修改</span></td>
                 <td><span style="cursor: pointer" class="text-danger" @click="deleteArticle(article)">删除</span></td>
             </tr>
@@ -88,6 +90,13 @@
                         <div id="editorAdd">
                         </div>
                     </div>
+                    <button class="btn btn-info" @click="selectHeadImage">选择封面图</button>
+                    <span class="text-info">{{headImageName}}</span>
+                    <div class="form-group" style="margin-top: 20px">
+                        <label class="control-label text-info">是否作为轮播图</label>
+                        <span style="margin-left: 30px;">是 :<input type="radio" value="1" name="isbanner" v-model="isbanner1"/></span>
+                        <span style="margin-left: 30px;">否 :<input type="radio" value="0" name="isbanner" v-model="isbanner1"/></span>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">关闭
@@ -97,6 +106,7 @@
                     </button>
                 </div>
             </div><!-- /.modal-content -->
+            <input type="file" style="visibility: hidden" id="headImage" @change = "uploadHeadImage">
             <!--修改文章-->
             <div class="modal-content" v-show="operateId == 1">
                 <div class="modal-header">
@@ -121,6 +131,13 @@
                             <div v-html="article.content"></div>
                         </div>
                     </div>
+                    <button class="btn btn-info" @click="selectHeadImage">选择封面图</button>
+                    <span class="text-info">{{headImageName}}</span>
+                    <div class="form-group" style="margin-top: 20px">
+                        <label class="control-label text-info">是否作为轮播图</label>
+                        <span style="margin-left: 30px;">是 :<input type="radio" value="1" name="isbanner" v-model="isbanner2"/></span>
+                        <span style="margin-left: 30px;">否 :<input type="radio" value="0" name="isbanner" v-model="isbanner2"/></span>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">关闭
@@ -144,11 +161,52 @@
                     <div v-html="article.content"></div>
                 </div>
                 <div class="modal-footer">
+                    <span class="text-info pull-left" v-if="article.image != null" @click="downloadAttachment(article.image)" style="cursor: pointer">封面预览</span>
                     <button type="button" class="btn btn-default" data-dismiss="modal">关闭
                     </button>
                 </div>
             </div><!-- /.modal-content -->
-
+            <!---->展示附件
+            <div class="modal-content" v-show="operateId == 3">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title">
+                        展示附件
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-condensed">
+                        <thead>
+                            <tr>
+                                <th>附件名</th>
+                                <th>上传时间</th>
+                                <th>下载</th>
+                                <th>删除</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="attach in attachments">
+                                <td><span>{{attach.fileName}}</span></td>
+                            <td><span>{{attach.time | dateFilter}}</span></td>
+                            <td><span style="cursor: pointer" class="text-info" @click="downloadAttachment(attach.url)">下载</span></td>
+                            <td><span style="cursor: pointer" class="text-danger" @click="deleteAttachment(attach.rid)">删除</span></td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <td><span class="text-warning" style="cursor: pointer" @click="addAttachment">添加附件</span></td>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <input type="file" id="file" style="visibility: hidden" @change="uploadAttachment">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭
+                    </button>
+                </div>
+            </div><!-- /.modal-content -->
         </div>
     </div>
 
@@ -168,13 +226,18 @@
             modelId : 0,
             menuId : 0,
             articleId : "",
-            //0 为添加文章， 1 修改文章， 2 展示文章
+            //0 为添加文章， 1 修改文章， 2 展示文章, 3 展示附件
             operateId : "",
             editorAdd : "",
             editorChange : "",
             article : "",
             articleContent : "",
             articleTitle : "",
+            attachments : [],
+            headImageName : "",
+            image : null,
+            isbanner1 : null,
+            isbanner2 : null,
         },
         methods : {
             //初始化model
@@ -191,6 +254,11 @@
             },
             //显示添加文章
             goAddArticle : function() {
+                this.image = null
+                this.headImageName = null
+                this.articleTitle = null
+                this.isbanner1 = null
+                this.editorAdd.txt.clear()
                 this.operateId = 0
                 $("#myModal").modal("show")
             },
@@ -201,9 +269,9 @@
                     $.ajax({
                         url : "${pageContext.request.contextPath}/rooter/addArticle.action",
                         type : "post",
-                        data : {title : this.articleTitle, content : this.editorAdd.txt.html(), menuId : this.menuId},
+                        data : {title : this.articleTitle, content : this.editorAdd.txt.html(), menuId : this.menuId, image : this.image, imageBanner : this.isbanner1},
                         success : function(data) {
-                            let article = {id: data, title: vue.articleTitle, title : new Date().toDateString()}
+                            let article = {id: data, title: vue.articleTitle, date : new Date().toDateString(), content : vue.editorAdd.txt.html()}
                             vue.articles.push(article)
                         }
                     })
@@ -211,12 +279,16 @@
             },
             //查看文章
             goShowArticle : function(article) {
+                this.image = null
                 this.operateId = 2
+                this.isbanner2 = null
                 this.article = article
                 $("#myModal").modal("show")
             },
             //显示修改文章
             goChangeArticle : function(article) {
+                this.image = null
+                this.headImageName = null
                 this.operateId = 1
                 $("#myModal").modal("show")
                 this.article = article
@@ -227,10 +299,11 @@
                     $.ajax({
                         url : "${pageContext.request.contextPath}/rooter/changeArticle.action",
                         type : "post",
-                        data : {title : this.article.title, content : this.editorChange.txt.html(), articleId : this.article.id},
+                        data : {title : this.article.title, content : this.editorChange.txt.html(), articleId : this.article.id, image : this.image, imageBanner : this.isbanner2},
                         success : function(data) {
                             $("#myModal").modal("hide")
                             vue.article.content = vue.editorChange.txt.html()
+                            vue.article.image = vue.image
                         }
                     })
                 }
@@ -255,6 +328,115 @@
                         })
                     }
                 }
+            },
+            goShowAttachment : function(article) {
+                $.ajax({
+                    url : "${pageContext.request.contextPath}/rooter/getAttachments.action?articleId=" + article.id,
+                    type : "get",
+                    dataType : "json",
+                    success : function(data) {
+                        vue.attachments = data
+                        vue.article = article
+                        vue.operateId = 3
+                        $("#myModal").modal("show")
+                    },
+                    error : function(err) {
+                        alert("请求服务端出错:" + err)
+                    }
+                })
+            },
+            addAttachment : function() {
+                $("#file").click()
+            },
+            selectHeadImage : function() {
+                $("#headImage").click()
+            },
+            uploadHeadImage : function() {
+                let file = $("#headImage")[0].files[0]
+                let formData = new FormData()
+                formData.append("file", file);
+                $.ajax({
+                    url : "${pageContext.request.contextPath}/uploadImage",
+                    type : "post",
+                    dataType : "json",
+                    contentType : false,
+                    processData : false,
+                    data : formData,
+                    success : function(data) {
+                        if(data.errno === 0) {
+                         vue.image = data.data[0];
+                         vue.headImageName = file.name
+                        }else {
+                            alert("服务器端处理封面图片失败")
+                        }
+                    },
+                    error : function(err) {
+                        alert("上传封面图片失败")
+                    }
+                })
+            },
+            uploadAttachment : function() {
+                let file = $("#file")[0].files[0]
+                let formData = new FormData();
+                formData.append("file", file)
+                //上传文件
+                $.ajax({
+                    url : "${pageContext.request.contextPath}/uploadAttachment",
+                    type : "post",
+                    dataType : "json",
+                    contentType : false,
+                    processData : false,
+                    data : formData,
+                    success : function(data) {
+                        if(data.rid != null) {
+                            //上传文件信息到服务端
+                            $.ajax({
+                                url : "${pageContext.request.contextPath}/rooter/addAttachment.action",
+                                type : "post",
+                                data : {"attachment.url" : data.url, "attachment.rid" : data.rid, "attachment.fileName" : file.name, "attachment.articleId" : vue.article.id},
+                                success : function(result) {
+                                    if(result === data.rid) {
+                                        vue.attachments.push({rid : data.rid, fileName : file.name, url : data.url, time : new Date()})
+                                    }else {
+                                        alert("更新文件信息失败")
+                                    }
+                                },
+                                error : function(err) {
+                                    alert("更新文件信息失败:" + JSON.stringify(err))
+                                }
+                            })
+                        }else {
+                            alert("文件上传失败")
+                        }
+                    },
+                    error : function(err) {
+                        alert("上传文件失败:" + JSON.stringify(err))
+                    }
+                })
+            },
+            deleteAttachment : function(rid) {
+                $.ajax({
+                    url : "${pageContext.request.contextPath}/rooter/deleteAttachment.action?rid=" + rid,
+                    type : "get",
+                    success : function(result) {
+                        if(rid === result) {
+                            for(let i = 0; i<vue.attachments.length; i++) {
+                                if(vue.attachments[i].rid === result) {
+                                    vue.attachments.splice(i, 1)
+                                    break
+                                }
+                            }
+                        }else {
+                            alert("删除附件失败")
+                        }
+                    },
+                    error : function(err) {
+                        alert("删除附件失败:" + JSON.stringify(err))
+                    }
+                })
+            },
+            downloadAttachment : function(url) {
+                window.open(url, "_black")
             }
         },
         watch : {
@@ -278,21 +460,48 @@
                         vue.articles = data
                     }
                 })
-            }
+            },
         },
         filters : {
-            dataFilter : function(time) {
+            dateFilter : function(time) {
                 return new Date(time).toDateString()
             }
         }
     })
 </script>
 <script>
+    var hooks = {
+        before: function (xhr, editor, files) {
+            // 图片上传之前触发
+            // xhr 是 XMLHttpRequst 对象，editor 是编辑器对象，files 是选择的图片文件
+        },
+        success: function (xhr, editor, result) {
+            // 图片上传并返回结果，图片插入成功之后触发
+            // xhr 是 XMLHttpRequst 对象，editor 是编辑器对象，result 是服务器端返回的结果
+        },
+        fail: function (xhr, editor, result) {
+            alery("服务端处理出错")
+        },
+        error: function (xhr, editor) {
+            alert("上传图片失败")
+
+        },
+        timeout: function (xhr, editor) {
+            alert("上传超时")
+        },
+    }
+
     var E = window.wangEditor
     vue.editorAdd = new E('#editorAdd')
+    vue.editorAdd.customConfig.showLinkImg = false
+    vue.editorAdd.customConfig.uploadImgServer = "${pageContext.request.contextPath}/uploadImage"
     vue.editorAdd.create()
+    vue.editorAdd.customConfig.uploadImgHooks = hooks;
 
     vue.editorChange = new E("#editorChange")
+    vue.editorChange.customConfig.showLinkImg = false
+    vue.editorChange.customConfig.uploadImgServer = "${pageContext.request.contextPath}/uploadImage"
     vue.editorChange.create()
+    vue.editorChange.customConfig.uploadImgHooks = hooks;
 </script>
 </html>

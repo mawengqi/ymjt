@@ -9,9 +9,11 @@ public class Article {
     private String  id;
     private String title;
     private String content;
-    private String images;
+    private String image;
     private Date time;
     private String menuId;
+    private Integer imageBanner;
+
 
     public String getId() {
         return id;
@@ -37,12 +39,12 @@ public class Article {
         this.content = content;
     }
 
-    public String getImages() {
-        return images;
+    public String getImage() {
+        return image;
     }
 
-    public void setImages(String images) {
-        this.images = images;
+    public void setImage(String image) {
+        this.image = image;
     }
 
     public Date getTime() {
@@ -59,5 +61,13 @@ public class Article {
 
     public void setMenuId(String menuId) {
         this.menuId = menuId;
+    }
+
+    public Integer getImageBanner() {
+        return imageBanner;
+    }
+
+    public void setImageBanner(Integer imageBanner) {
+        this.imageBanner = imageBanner;
     }
 }

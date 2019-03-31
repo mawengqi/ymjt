@@ -1,0 +1,58 @@
+var tt_qr=(
+	function(){
+		
+		var obj,
+			objWin,
+			buttons;
+		
+		function init(id){
+			
+			getObj(id);
+			bindEvent();
+			
+		}
+		
+		function getObj(id){
+			
+			obj=document.getElementById('qr_mask');
+			objWin=obj.getElementsByTagName('div')[0];
+			
+			if(document.getElementById(id)){
+				buttons=document.getElementById(id);
+			}
+			else if(document.getElementsByClassName(id)[0]){
+				buttons=document.getElementsByClassName(id)[0];
+			}
+			else{
+					buttons=document.getElementsByClassName('content_text_phone')[0];
+			}
+			
+		}
+		
+		function bindEvent(){
+			
+			obj.onclick=function(){
+				
+				obj.className='qr_mask';
+				objWin.className='qr_window';
+				
+			}
+			objWin.onclick=function(e){
+				
+				var e=e||window.event;
+				e.stopPropagation();
+				
+			}
+			buttons.onclick=function(){
+				
+				obj.className='qr_mask qr_mask_show';
+				objWin.className='qr_window qr_window_show';
+				
+			}
+			
+		}
+		
+		return init; 
+		
+	}
+)();

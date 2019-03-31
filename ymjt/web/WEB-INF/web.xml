@@ -52,4 +52,22 @@
         <filter-name>struts2</filter-name>
         <url-pattern>*.action</url-pattern>
     </filter-mapping>
+
+    <servlet>
+        <servlet-name>uploadImage</servlet-name>
+        <servlet-class>com.ymjt.controller.UploadImage</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>uploadImage</servlet-name>
+        <url-pattern>/uploadImage</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>uploadAttachment</servlet-name>
+        <servlet-class>com.ymjt.controller.UploadAttachment</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>uploadAttachment</servlet-name>
+        <url-pattern>/uploadAttachment</url-pattern>
+    </servlet-mapping>
 </web-app>

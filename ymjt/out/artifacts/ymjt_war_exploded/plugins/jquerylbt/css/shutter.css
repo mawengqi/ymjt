@@ -6,7 +6,7 @@ ul, li { list-style: none; }
   overflow: hidden;
   height: 500px;
   position: relative;
-  border-radius: 10px;
+  /*border-radius: 0px;*/
   
 }
 .shutter-img {

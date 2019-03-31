@@ -1,0 +1,76 @@
+/*#slide_projector{
+	position: relative;
+	width: 50%;
+	padding-top: 30%;
+}*/
+#slide_projector .slide_content{
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+}
+#slide_projector .slide_list{
+	position: relative;
+	overflow: hidden;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	-webkit-transition: all 0.5s ease-in-out;
+	-moz-transition: all 0.5s ease-in-out;
+	-ms-transition: all 0.5s ease-in-out;
+	-o-transition: all 0.5s ease-in-out;
+	transition: all 0.5s ease-in-out;
+}
+#slide_projector .slide_list li{
+	float: left;
+	width: 16.67%;
+	height: 100%;
+	overflow: hidden;
+}
+#slide_projector .slide_list li img{
+	width: 100%;
+}
+#slide_control_list{
+	position: absolute;
+	left: 0;
+	bottom: 10px;
+	width: 100%;
+	z-index: 2;
+	text-align: center;
+}
+#slide_control_list span{
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border-radius: 100%;
+	margin: 0 5px;
+	background-color: rgb(255,255,255);
+	cursor: pointer;
+	border: solid 1px #999999;
+}
+#slide_button_left{
+	width: 40px;
+	height: 100px;
+	text-align: center;
+	line-height: 100px;
+	background: url(../img/nextBg.png);
+	position: absolute;
+	left: 0;
+	top: 40%;
+	z-index: 3;
+	color: #ffffff;
+}
+#slide_button_right{
+	width: 40px;
+	height: 100px;
+	text-align: center;
+	line-height: 100px;
+	background: url(../img/nextBg.png);
+	position: absolute;
+	right: 0;
+	top: 40%;
+	z-index: 3;
+	color: #ffffff;
+}

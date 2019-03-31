@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class name="com.ymjt.entity.Attachment" table="attachment">
+        <id name="id" column="id" type="int">
+            <generator class="identity"/>
+        </id>
+        <property name="url" column="url" type="string" length="100"/>
+        <property name="rid" column="rid" type="string" length="50"/>
+        <property name="fileName" column="filename" type="string" length="50"/>
+        <property name="articleId" column="articleid" type="string" length="32"/>
+        <property name="time" column="time" type="java.util.Date"/>
+    </class>
+</hibernate-mapping>

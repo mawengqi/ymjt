@@ -6,7 +6,10 @@
     <script src="../plugins/jquery/jquery.min.js"></script>
     <script src="../plugins/bootstrap/js/bootstrap.min.js"></script>
     <script src="../plugins/vue/dist/vue.js"></script>
+    <script src="../plugins/toast/js/toast.js"></script>
+    <link rel="stylesheet" type="text/css" href="../plugins/toast/css/toast.css"/>
     <link href="../plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
+
 </head>
 <body>
 <div id="vue" class="container-fluid">
@@ -50,7 +53,6 @@
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label class="control-label">模块名</label>
                         <div>
                             <input type="text" class="form-control" placeholder="请输入模块名" maxlength="20" v-model="modelName">
                         </div>
@@ -76,10 +78,14 @@
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label class="control-label">栏目名</label>
                         <div>
                             <input type="text" class="form-control" placeholder="请输入栏目名" maxlength="20" v-model="menuName">
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-info" @click="selectUploadFile">选择封面图</button>
+                        <span class="text-info">{{imageName}}</span>
+                        <input type="file" style="visibility: hidden" id="uploadImage" @change="uploadImage"/>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -140,14 +146,19 @@
                         <thead>
                         <tr>
                             <th>栏目名称</th>
+                            <th>预览封面</th>
+                            <th>修改封面</th>
                         </tr>
                         </thead>
                         <tbody>
                         <tr v-for="menu in menuList">
                             <template v-if="menu != null">
                                 <td><span>{{menu.name}}</span></td>
+                                <td><span class="text-info" style="cursor: pointer" @click="preview(menu.imageUrl)">预览</span></td>
+                                <td><span class="text-info" style="cursor: pointer" @click="selectChangeImage(menu)">修改</span></td>
                             </template>
                         </tr>
+                        <input type="file" style="visibility: hidden" id="changeImage" @change="changeImage"/>
                         </tbody>
                     </table>
                 </div>
@@ -176,6 +187,9 @@
             modelId : "",
             menuName : "",
             menuList : [],
+            imageUrl : null,
+            imageName : null,
+            menu : null,
         },
         methods : {
             loadModel : function() {
@@ -242,10 +256,10 @@
                             $.ajax({
                                 url : "${pageContext.request.contextPath}/rooter/addMenu.action",
                                 type : "post",
-                                data : {modelId : vue.modelId, name : vue.menuName},
+                                data : {modelId : this.modelId, name : this.menuName, imageUrl : this.imageUrl},
                                 success : function(data) {
                                     let menuId = data
-                                    vue.models[index].menuList.push({id : menuId, name : vue.menuName})
+                                    vue.models[index].menuList.push({id : menuId, name : vue.menuName, imageUrl : vue.imageUrl})
                                     vue.menuName = ""
                                 }
                             })
@@ -292,6 +306,8 @@
                 }
             },
             goAddMenu : function(modelId) {
+                this.imageUrl = null
+                this.imageName = null
                 this.modelId = modelId;
                 this.operateId = 1
                 $("#myModal").modal("show")
@@ -306,6 +322,82 @@
                         return
                     }
                 }
+            },
+
+            uploadImage : function() {
+                let file = $("#uploadImage")[0].files[0]
+                let formData = new FormData()
+                formData.append("file", file);
+                $.ajax({
+                    url : "${pageContext.request.contextPath}/uploadImage",
+                    type : "post",
+                    dataType : "json",
+                    contentType : false,
+                    processData : false,
+                    data : formData,
+                    success : function(data) {
+                        if(data.errno === 0) {
+                            vue.imageUrl = data.data[0]
+                            vue.imageName = file.name
+                        }else {
+                            alert("服务器端处理封面图片失败")
+                        }
+                    },
+                    error : function(err) {
+                        alert("上传封面图片失败")
+                    }
+                })
+            },
+            preview : function(url) {
+                if(url === "" || url === null)
+                    $("body").toast({
+                        content:'无封面',
+                        duration:3000
+                    })
+                else
+                     window.open(url, "_black")
+            },
+            selectUploadFile : function() {
+                $("#uploadImage").click()
+            },
+            selectChangeImage : function(menu) {
+                this.menu = menu
+                $("#changeImage").click()
+            },
+            changeImage : function(menu) {
+                let file = $("#changeImage")[0].files[0]
+                let formData = new FormData()
+                formData.append("file", file);
+                $.ajax({
+                    url : "${pageContext.request.contextPath}/uploadImage",
+                    type : "post",
+                    dataType : "json",
+                    contentType : false,
+                    processData : false,
+                    data : formData,
+                    success : function(data) {
+                        if(data.errno === 0) {
+                            $.ajax({
+                                url : "${pageContext.request.contextPath}/rooter/changeMenuImage.action?imageUrl=" + data.data[0] + "&menuId=" + vue.menu.id,
+                                type : "get",
+                                success : function(result) {
+                                    if(result === vue.menu.id) {
+                                        //修改成功
+                                        vue.menu.imageUrl = data.data[0]
+                                    }else{
+                                        //修改失败
+                                        alert("修改失败")
+                                    }
+                                }
+                            })
+                        }else {
+                            alert("服务器端处理封面图片失败")
+                        }
+                    },
+                    error : function(err) {
+                        alert("上传封面图片失败")
+                    }
+                })
             }
         }
     })

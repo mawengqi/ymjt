@@ -2,15 +2,16 @@ package com.ymjt.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.opensymphony.xwork2.ActionContext;
+import com.ymjt.commons.FileUpload;
 import com.ymjt.commons.ResultNames;
 import com.ymjt.commons.SessionNames;
 import com.ymjt.commons.UserType;
-import com.ymjt.entity.Article;
-import com.ymjt.entity.Menu;
-import com.ymjt.entity.Model;
-import com.ymjt.entity.User;
+import com.ymjt.entity.*;
 import com.ymjt.utils.IDS;
 import com.ymjt.utils.ValidateUtils;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.Validate;
 import org.apache.log4j.Logger;
 import org.apache.struts2.ServletActionContext;
 import org.hibernate.Session;
@@ -24,6 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.rmi.server.ServerCloneException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -36,6 +38,7 @@ public class RooterController {
     @Autowired
     private SessionFactory sessionFactory;
     private User user;
+    private Attachment attachment;
 
     /**
      * 登录
@@ -160,11 +163,13 @@ public class RooterController {
         HttpServletResponse response = ServletActionContext.getResponse();
         String modelId = request.getParameter("modelId");
         String name = request.getParameter("name");
-        ValidateUtils.check(modelId, name);
+        String imageUrl = request.getParameter("imageUrl");
+        ValidateUtils.check(modelId, name, imageUrl);
         Menu menu = new Menu();
         menu.setId(IDS.getId());
         menu.setName(name);
         menu.setModelId(modelId);
+        menu.setImageUrl(imageUrl);
         session.save(menu);
         String directoryPath = ServletActionContext.getServletContext().getRealPath("/static/image/news/" + modelId + "/" + menu.getId());
         File file = new File(directoryPath);
@@ -191,6 +196,22 @@ public class RooterController {
         File file = new File(directoryPath);
         if(file.exists())
             file.delete();
+        response.getWriter().write(menuId);
+    }
+
+    /**
+     * 修改栏目图片
+     * imageUrl
+     */
+    public void changeMenuImage() throws Exception {
+        Session session = sessionFactory.getCurrentSession();
+        HttpServletRequest request = ServletActionContext.getRequest();
+        HttpServletResponse response = ServletActionContext.getResponse();
+        String imageUrl = request.getParameter("imageUrl");
+        String menuId = request.getParameter("menuId");
+        ValidateUtils.check(imageUrl, menuId);
+        session.createQuery("update Menu set imageUrl = :imageUrl where id = :menuId")
+                .setParameter("imageUrl", imageUrl).setParameter("menuId", menuId).executeUpdate();
         response.getWriter().write(menuId);
     }
 
@@ -241,12 +262,17 @@ public class RooterController {
         String title = request.getParameter("title");
         String content = request.getParameter("content");
         String menuId = request.getParameter("menuId");
+        String image = request.getParameter("image");
         ValidateUtils.check(title, content, menuId);
         Article article = new Article();
         article.setId(IDS.getId());
         article.setTitle(title);
         article.setContent(content);
         article.setMenuId(menuId);
+        if(image != null && !"".equals(image)) {
+            article.setImage(image);
+            article.setImageBanner(Integer.parseInt(request.getParameter("imageBanner")));
+        }
         session.save(article);
         response.getWriter().write(article.getId());
     }
@@ -263,9 +289,16 @@ public class RooterController {
         String title = request.getParameter("title");
         String content = request.getParameter("content");
         String articleId = request.getParameter("articleId");
+        String image  = request.getParameter("image");
         ValidateUtils.check(title, content, articleId);
-        session.createQuery("update Article set title = :title, content = :content where id = :id")
-                .setString("title", title).setString("content", content).setString("id", articleId).executeUpdate();
+    if(image != null|| !"".equals(image)){
+            Integer imageBanner = Integer.parseInt(request.getParameter("imageBanner"));
+            session.createQuery("update Article set title = :title, content = :content, image = :image, imageBanner = :imageBanner where id = :id")
+                    .setString("title", title).setString("content", content).setString("id", articleId).setString("image", image).setInteger("imageBanner", imageBanner).executeUpdate();
+        }
+        else
+            session.createQuery("update Article set title = :title, content = :content, image = :image where id = :id")
+                    .setString("title", title).setString("content", content).setString("id", articleId).executeUpdate();
         response.getWriter().write(articleId);
     }
 
@@ -341,7 +374,40 @@ public class RooterController {
         }
     }
 
+    /**
+     *  附件管理
+     */
 
+    //添加附件信息
+    public void addAttachment() throws Exception {
+        ValidateUtils.check(attachment, attachment.getArticleId(), attachment.getFileName(), attachment.getRid(), attachment.getUrl());
+        Session session = sessionFactory.getCurrentSession();
+        HttpServletResponse response = ServletActionContext.getResponse();
+        session.save(attachment);
+        response.getWriter().write(attachment.getRid());
+    }
+
+    //删除附件信息
+    public void deleteAttachment() throws Exception {
+        Session session = sessionFactory.getCurrentSession();
+        HttpServletRequest request = ServletActionContext.getRequest();
+        HttpServletResponse response = ServletActionContext.getResponse();
+        String rid = request.getParameter("rid");
+        ValidateUtils.check(rid);
+        session.createQuery("delete from Attachment where rid = :rid").setParameter("rid", rid).executeUpdate();
+        response.getWriter().write(rid);
+    }
+
+    //根据 articleId 获取 attachment
+    public void getAttachments() throws Exception {
+        Session session = sessionFactory.getCurrentSession();
+        HttpServletRequest request = ServletActionContext.getRequest();
+        HttpServletResponse response = ServletActionContext.getResponse();
+        String articleId = request.getParameter("articleId");
+        ValidateUtils.check(articleId);
+        List attachments = session.createQuery("from Attachment where articleId = :articleId").setParameter("articleId", articleId).list();
+        response.getWriter().write(JSON.toJSONString(attachments));
+    }
 
     public String showHome() {
         return ResultNames.PAGEADMINHOME;
@@ -353,5 +419,13 @@ public class RooterController {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public Attachment getAttachment() {
+        return attachment;
+    }
+
+    public void setAttachment(Attachment attachment) {
+        this.attachment = attachment;
     }
 }

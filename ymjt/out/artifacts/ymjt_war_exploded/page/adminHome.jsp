@@ -13,7 +13,6 @@
         <ul class="nav nav-pills nav-stacked">
             <li class="active"><a href="#" style="text-align: center" onclick="change(0)">模块管理</a></li>
             <li><a href="#" style="text-align: center" onclick="change(1)">文章管理</a></li>
-            <li><a href="#" style="text-align: center" onclick="change(2)">文件管理</a></li>
             <li><a href="#" style="text-align: center" onclick="change(3)">用户管理</a></li>
         </ul>
     </div>
@@ -23,7 +22,7 @@
 </div>
 </body>
 <script>
-    var changeUrls = ["${pageContext.request.contextPath}/page/adminModel.jsp", "${pageContext.request.contextPath}/page/adminArticle.jsp", "${pageContext.request.contextPath}/page/adminFile.jsp", "${pageContext.request.contextPath}/page/adminUser.jsp"];
+    var changeUrls = ["${pageContext.request.contextPath}/page/adminModel.jsp", "${pageContext.request.contextPath}/page/adminArticle.jsp", "${pageContext.request.contextPath}/page/adminUser.jsp"];
     function change(index){
         $("iframe").eq(0).attr("src", changeUrls[index]);
     }

@@ -1,0 +1,41 @@
+var tt_unable=(function(){
+	var topGood,
+		bottomGood,
+		flag=false;
+		
+	function bindEvent(){
+		
+		topGood.onclick=function(){
+			
+			clickEvent();
+			
+		}
+		bottomGood.onclick=function(){
+			
+			clickEvent();
+			
+		}
+		
+	}
+	
+	function clickEvent(){
+		
+		if(!flag){
+			topGood.className+=' good_unable';
+			bottomGood.className+=' good_unable';
+			flag=true;
+		}
+		
+	}
+	
+	function init(){
+		
+		topGood=document.getElementById("title_share_fabulous");
+		bottomGood=document.getElementById("content_text_good");
+		
+		bindEvent();
+		
+	}
+	
+	return init;
+})();

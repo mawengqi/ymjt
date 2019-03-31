@@ -7,6 +7,7 @@ public class Menu {
     private String id;
     private String name;
     private String modelId;
+    private String imageUrl;
 
     public String getId() {
         return id;
@@ -30,5 +31,13 @@ public class Menu {
 
     public void setModelId(String modelId) {
         this.modelId = modelId;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

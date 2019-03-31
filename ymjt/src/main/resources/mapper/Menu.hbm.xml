@@ -9,5 +9,6 @@
         </id>
         <property name="name" column="name" type="java.lang.String" not-null="true" length="20"/>
         <property name="modelId" column="modelid" type="java.lang.String" not-null="true"/>
+        <property name="imageUrl" column="imageurl" type="java.lang.String" not-null="true"/>
     </class>
 </hibernate-mapping>
